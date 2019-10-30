@@ -1,8 +1,8 @@
 ## Hood River Valley High School - SkyStone FTC Mecanum Base
 
-This project is the Blocks and OnBotJava for a common Java platform for the HRVHS FTC teams using the
+This project is the Blocks and OnBotJava for a common platform for the HRVHS FTC teams using the
 [TileRunner HD Mecanum](https://github.com/FIRST-Tech-Challenge/SkyStone) base.  The key things we wanted to accomplish are:
-* Provide a common base for Blocks, On-Bot-Java, and Java development - so you have common, working, driver and autonomous
+* Provide a common base for Blocks, On-Bot-Java, and Java development - so you have common working driver and autonomous
   functionality.
 * Demonstrate (in Java) using a common Robot class that all the driver-controlled and autonomous OpModes can be built on so common
   functionality is on one place shared by all OpModes
@@ -42,8 +42,8 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   
   Troubleshooting:
   * If the program does not start and you get messages that `FL`, `FR`, `RR`, or `LR` could not be found, it means the motors
-    have not been correctly configured in the configuration on your robot control phone. Ususally this meas a motor is missing
-    or the name was misspelled.
+    have not been correctly configured in the configuration on your robot control phone. Usually this means a motor is missing
+    in the configuration or the name was misspelled.
   * If the wrong wheel spins - you have the motor that is spinning plugged into the wrong port.
   * If the encoder that is incrementing does not match the motor that is getting power and spinning - you don't have the encoder
     for the motor plugged into the same port as the motor.
@@ -74,15 +74,18 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
     
 * **AutoCalibrate** - is a driver controlled program to test and calibrate autonomous move/turn functions.
 
-  For your autonomous modes, calibrate **AutoCalibrate** for your robot, then start with a copy of **AutoCalibrate** and:
-  * change the opmode type from *TeleOp* to *Autonomous*
-  * remove the driver control loop from runOpMode and replace this with your autonomous program.
-  
   The autonomous move/turn methods are:
   * **move with inches, degrees** - move the specified distance (inches) in the specified direction (degrees) without
     changing the heading of the robot. A direct of 0&deg; is straight ahead; 90&deg; is to the right; -90&deg; is to the left.
     The distance may be negative.
   * **rotate with degrees** - turn the specified number of degrees, positive is clockwise.
+  
+  For your autonomous modes, calibrate **AutoCalibrate** for your robot (see notes below), then start with a copy
+  of **AutoCalibrate** and:
+  * change the opmode type from *TeleOp* to *Autonomous*
+  * remove the driver control loop from runOpMode and replace this with your autonomous program. Your autonomous programs
+    will probably use the **move with inches, degrees** and **rotate with degrees** to position the robot; and add methods to
+    control lifters, grabbers, sensors, etc.
   
   **Calibrating your robot**:
   
@@ -123,7 +126,7 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   Repeat this until you have consistent motion of the calibration distance as requested.
   
   **Calibration Constants**
-  \
+  
   These are the calibration constants that can be tuned to make your robot follow autonomous commands as
   accurately (and quickly) as possible:
   
@@ -136,18 +139,26 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
     reduce slippage considerations. This should be as high as possible without creating slippage that makes encoder
     readings unreliable.
   * **mtr_decel_min** - the smallest value the power will ramp down to. In FRC we discovered that if this is 0, the robot
-    can ve very close to, but not reaching the target, and the ramped value is so close to zero that the robot does not move,
-    never reaches the target, and the move command loops forever. This prevents that situation. This should be as low
-    as possible, but high enough that continued motion is assured.
+    can be very close to, but not reaching the target, and the ramped value is so close to zero that the robot does not
+    move (i.e., it never reaches the target, and there is not enough power to overcome friction and move the robot).
+    The result is that the move command loops forever (locking the program in a move that never completes). A correct value
+    here prevents that situation. This should be as low as possible, but high enough that continued motion towards the goal
+    is assured.
   * **mtr_accel_ticks** - The number of encoder tics to accelerate from the **mtr_accel_min** to 1.0. If 0, the motors
     immediately accelerate to full power. Ideally, this is as low as possible without introducing slippage that makes
     **tics_per_inch_forward** or **tics_per_inch_sideways** unreliable.
-  * **mtr_decel_tics**- The number of encoder tics to decelerate from 1.0 to **mtr_decel_min**. If 0, the motors
+  * **mtr_decel_tics** -  The number of encoder tics to decelerate from 1.0 to **mtr_decel_min**. If 0, the motors
     immediately decelerate 0.0 once the target is reached. Ideally, this and **mtr_decel_min** are as low as possible without
     introducing overshoot or a situation where motion stops before the goal is reached.
   * **mtr_accel_degs** - analogous to **mtr_accel_ticks**, but in degrees for turn.
-  * **mtr_decel_degs**- analogous to **mtr_decel_ticks**, but in degrees for turn.
+  * **mtr_decel_degs** - analogous to **mtr_decel_ticks**, but in degrees for turn.
   * **kp** - tunes speed of correction for heading deviations, see discussion in **DriveExample**
+  
+  **Troubleshooting**
+  * You make a request (move, turn) and it never completes (the drive mode seems to hang, and you can't do anything other than
+    forcing a restart). This probably means your **mtr_decel_min** is too low. Specifically, your robot is almost the the 
+    target position, but, the power is so low that it will not move the robot that last inch. Solution: increase
+    **mtr_decel_min** and/or decrease **mtr_decel_tics**-.
 
 ## HVRHS OnBotJava
 
