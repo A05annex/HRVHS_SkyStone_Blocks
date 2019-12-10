@@ -10,15 +10,42 @@ This project is the Blocks and OnBotJava for a common platform for the HRVHS FTC
   [command-based programming](https://wpilib.screenstepslive.com/s/currentCS/m/java/c/88893) paradigm used in the
   FRC WPILib platform.
 
+## Revision Notes
+
+* update 1 (30 Oct 2019):
+  * Fixed telemetry for encoder values (they we previously all reporting the same encoder)
+  * Improved initial calibration defaults based on testing with several TileRunner bases.
+* update 2 (10 Dec 2019):
+  * added `AutoCalibarate` companion functions fore `move(...)` and `rotate(...)` (which run at a max power of 1.0; i.e.
+    the fastest the robot can go) as:
+    * `moveAtSpeed(...)`, and `rotateAtSpeed(...)` - move or rotate respectively with the power limited to the specified maximum.
+    * `parameterizedMove(...)`, and `ParameterisedRotate(...)` - move or rotate (respectively) with all aspects of the ramped
+      power curve controlled by the passed in parameters.
+  * Modified the IMU initialization to be before the wait for start, and to correctly terminate if stop is pressed on the
+    driver control station for both `AutoCalibarate` and `DriveExample`. This fixes the problem of termination during
+    initialization (done in the field inspection) hanging to robot and requiring a robot restart. Note that the old
+    IMU initialization loop ran while `true`, it now runs while `opModeIsActive`.
+  * Moved the IMU initialization before the `waitForStart`. The `expected_heading` is initialized after the `waitForStart`, so any
+    IMU precession will be included in the `expected_heading`. Moving the initialization before the `waitForStart` means that
+    the robot does not need to wait for IMU initialization at the beginning of the autonomous period.
+
 ### TileRunner Base Details
 
-So lets define the HRVHS mecanum base in terms of the assembly and configuration. If we want to share and leverage common code,
+So, lets define the HRVHS mecanum base in terms of the assembly and configuration.
+If we want to share and leverage common code,
 we need a common robot base. So, this is a diagram of the mecanum base after assembly and mounting of the REV expansion hub for
 the drive (a second REV expansion hub can be mounted anywhere):
 ![alt text](./resources/HRVHS_Mecanum.jpg "Mecanum Base Layout and Configuration")
 
+***NOTE the wheel orientation/configuration of the wheel rollers should form an X. If they do not, then you will not
+have sideways motion. This is the most common really serious construction error.***
+
 The REV Expansion Hub should be mounted in the center of the chassis with the USB hub facing forward. Take care to align
-the controller with the chassis so that a heading of 0 will be straight ahead.
+the controller with the chassis so that a heading of 0 will be straight ahead (although, we do read the heading, and
+use this as the reference 0 heading, when the
+op mode starts; so there is a programmatic adjustment if the expansion hub is not perfectly aligned with the robot frame
+and/or there has been a time delay that causes the imu gyros to [precess](https://en.wikipedia.org/wiki/Precession)
+between initialization and start).
 
 Your motor configuration should be:
 * 'FL' - (motor front left) power and encoder wired to REV port 0
@@ -29,11 +56,11 @@ Your motor configuration should be:
 And the encoder should be configured as:
 * 'IMU' - IC2 0 - port 0
 
-### HRVHS Skystone Blocks
+### HRVHS Skystone Blocks Programs
 
-There are 3 Blocks files you can upload to your Blocks programming environment:
+There are 3 Blocks program files you can upload to your Blocks programming environment:
 
-* **TestMotors** - Tests that motors and encoders are connected and configured correctly. When you run this program there
+* **TestMotors.blk** - Tests that motors and encoders are connected and configured correctly. When you run this program there
   are these driver controls:
   * dpad up - left front wheel should be getting power, should be turning forward, and the encoder value should be increasing.
   * dpad left - left rear wheel should be getting power, should be turning forward, and the encoder value should be increasing.
@@ -48,14 +75,14 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   * If the encoder that is incrementing does not match the motor that is getting power and spinning - you don't have the encoder
     for the motor plugged into the same port as the motor.
     
-  Don't try the other programs until you get this one to work correctly.
+  ***Don't try the other programs until you get this one to work correctly.***
   
-* **DriveExample** - An example of driver control using the IMU to maintain heading. It implements both *arcade* and *tank*
+* **DriveExample.blk** - An example of driver control using the IMU to maintain heading. It implements both *arcade* and *tank*
   drive, *arcade* is the default.
   
   For your drive modes, start with a copy of **DriveExample**
   
-  In the runOpMode, you can disable *arcade_drive* and enable *tank_drive* if you want to
+  In the `runOpMode`, you can disable *arcade_drive* and enable *tank_drive* if you want to
   use tank drive. When using *arcade* drive, the right stick controls forward-sideways and the heading of the robot will
   be maintained (using the IMU). If the left stick is used to turn the robot then the reference heading will be reset when
   the turn ends.
@@ -72,7 +99,13 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
     Increase the value for more immediate heading correction. If your robot starts to rock side-to-side it means you have **kp**
     set too high.
     
-* **AutoCalibrate** - is a driver controlled program to test and calibrate autonomous move/turn functions.
+  **Troubleshooting**
+  * Forward-backward and turn seem to work correctly, sideways does not work at all. ***PAY ATTENTION HERE!!!*** This probably
+    means you have not correctly mounted you wheels (a common problem). Refer back to the figure at the beginning of this section
+    and note that when you look down on the robot the orientation of the rollers on the mechanum wheels should trace an **X** over
+    the chassis of the robot - if you get this wrong, you will not get the desired sideways motion.
+    
+* **AutoCalibrate.blk** - is a driver controlled program to test and calibrate autonomous move/turn functions.
 
   The autonomous move/turn methods are:
   * **move with inches, degrees** - move the specified distance (inches) in the specified direction (degrees) without
@@ -98,16 +131,20 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   * dpad right - move right *calibration_distance*. If you have the left bumper pressed, turn clockwise 90&deg;
   * dpad down - move backwards *calibration_distance*.
   
+  The above moves/rotations will ramp up to full speed by default. If the right bumper is pressed when the move/rotation is
+  initiated.
+  
   The default *calibration-distance* is 24" - which is one competition field floor tile. Ideally, you would pick the corner of
   a tile that you would return your robot to at the beginning of each calibration test. Each move/turn includes a ramp up to full
   speed, full speed movement, and a deceleration from full speed as the robot approaches the goal. Since the TileRunner base
   can be built with different gear ratios and the encoder is on the motor, not the wheel; each gear ratio will have its
   own calibrated constants. Additionally, differences in alignment, friction, motors, wheels, etc. mean that the calibration
-  of no two robots is likely to be the same.
+  of no two robots is likely to be the same. WHAT THIS MEANS is run the calibration and set the constants for your robot
+  so you can use a tape measure on the field to map out what you want your robot to do.
   
   Start by running *dpad up* and *dpad down*. Measure the distance forward the robot actually moves, when you move back, it
   should return to essentially the same place it started from. Since the TileRunner base can be built with different gear
-  ratios the robot-specific calibration is just that, specific to to robot. Adjust the *tics_per_inch_forward* as:
+  ratios the robot-specific calibration is just that, specific to your robot. Adjust the *tics_per_inch_forward* as:
   
   ```
   new_tics_per_inch_forward = (calibration-distance * tics_per_inch_forward) / measured_distance
@@ -124,6 +161,21 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   ```
   
   Repeat this until you have consistent motion of the calibration distance as requested.
+  
+  **Ramped Motion**
+  
+  Ramped motion means starting at some acceleration minimum power, ramping to the maximum power, running at maximum power
+  until you get close to the target, and then decelerating to some deceleration minimum power so you minimally overshoot the
+  target. By default, calibration ramps to maximum speed of 1.0 then decelerates, see the diagram below:
+  
+  ![alt text](./resources/rampDetails.jpg "Ramped Power Control")
+  
+  NOTE: when you are calibrating (see notes below on **Calibration Constants**), you are calibrating without outside forces
+  on your robot. In competition, there may be outside forces (i.e. you are hitting/dragging the foundation, your are hitting
+  the outer wall to align yourself, you are carrying/drgging blocks, etc.). In these cases, the
+  default minimum `accel` or `decel` power may not be sufficient. Use
+  the `parameterisedMove(...)` or `parameterisedRotate(...)` if you need to override the default calibration values for a
+  specific action.
   
   **Calibration Constants**
   
@@ -158,10 +210,16 @@ There are 3 Blocks files you can upload to your Blocks programming environment:
   * You make a request (move, turn) and it never completes (the drive mode seems to hang, and you can't do anything other than
     forcing a restart). This probably means your **mtr_decel_min** is too low. Specifically, your robot is almost the the 
     target position, but, the power is so low that it will not move the robot that last inch. Solution: increase
-    **mtr_decel_min** and/or decrease **mtr_decel_tics**-.
+    **mtr_decel_min** and/or decrease **mtr_decel_tics**.
 
-## HVRHS OnBotJava
+## HVRHS OnBotJava Programming
+
+There are a couple possible steps in moving to Java, and then command-based programming. The first step is translating the
+blocks base programs to Java, and then refining that so there is a common base that you extend for all of your drive and
+autonomous programs.
+
+## HRVS Command-Based Programming
 
 Command-based programming in OnBotJava is relatively complex because it requires you load a programming framework of
-code that is in your programming environment, but that you never change.
+code into your programming environment, but that you never change.
 
