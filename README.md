@@ -131,8 +131,8 @@ There are 3 Blocks program files you can upload to your Blocks programming envir
   * dpad right - move right *calibration_distance*. If you have the left bumper pressed, turn clockwise 90&deg;
   * dpad down - move backwards *calibration_distance*.
   
-  The above moves/rotations will ramp up to full speed by default. If the right bumper is pressed when the move/rotation is
-  initiated.
+  The above moves/rotations will ramp up to full power by default. If the right bumper is pressed when the move/rotation is
+  initiated it will only ramp up to half power.
   
   The default *calibration-distance* is 24" - which is one competition field floor tile. Ideally, you would pick the corner of
   a tile that you would return your robot to at the beginning of each calibration test. Each move/turn includes a ramp up to full
