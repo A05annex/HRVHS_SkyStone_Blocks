@@ -28,6 +28,8 @@ This project is the Blocks and OnBotJava for a common platform for the HRVHS FTC
   * Moved the IMU initialization before the `waitForStart`. The `expected_heading` is initialized after the `waitForStart`, so any
     IMU precession will be included in the `expected_heading`. Moving the initialization before the `waitForStart` means that
     the robot does not need to wait for IMU initialization at the beginning of the autonomous period.
+* upodate 3 (7 Jan 2020)
+  * Added the OnBotJava translation of the blocks code, with documentation in this README file.
 
 ### TileRunner Base Details
 
@@ -216,7 +218,43 @@ There are 3 Blocks program files you can upload to your Blocks programming envir
 
 There are a couple possible steps in moving to Java, and then command-based programming. The first step is translating the
 blocks base programs to Java, and then refining that so there is a common base that you extend for all of your drive and
-autonomous programs.
+autonomous programs. We did that with the three blocks programs and added an `OBJ` prefix (for **O**n**B**ot**J**ava) to
+the name.
+
+In your blocks programming environment switch to OnBotJava and upload all of the files in the OnBotJava folder. Then hit the
+build icon to build all of the files an install them on your robot control phone. You can then run these programs and the should
+run the same as the blocks counterpart:
+
+* **OBJMotorTest** see MotorTest notes in the Blocks programming section.
+* **OBJDriveExample** see DriveExample notes in the Blocks programming section.
+* **OBJAutoCalibrate** see AutoCalibrate notes in the Blocks programming section.
+* **OBJAutoExample** A simple example autonomous program that moves the robot in a diamond pattern and then spins it
+  once clockwise and once counterclockwise. Copy this as a starting point for your autonomous program.
+  
+### Differences Between Blocks and OnBotJava Programming
+
+The big difference is that a Blocks program is a complete program in one file, while Java allows the program to be
+broken into smaller classes/files that can be shared between programs. Java also allows a thing called inheritance, which lets us
+put common functionality in a single class/file. We see this in the class structure of the OnBotJava code:
+
+* `AMecBase.java` - This is an abstract class extending the FTC framework `LinearOpMode` to add the 'constants', motor
+  initialization and setup, autonomous move functions, drive support functions (not connected to input).
+* `AMyMecBase.java` - This is an abstract class extending `AMecBase` to add the specifics for your robot. These specifics
+  include resetting 'constants' for the specifics of your base (different gear ratios, friction, balance and other
+  constructions differences), as well as the common game control functions like `grabFoundation()`, `releaseFoundation()`, and
+  `senseSkystone()`. There are a couple software design questions commonly asked:
+  * *Why don't I add my robot code to `AMecBase` instead of adding another base class?* - Because `AMecBase` supports the common
+    mecanum base, and if teams request or contribute new or refined capabilities you may want to replace your copy of
+    `AMecBase.java` with a new one, and you don't want this to interfere with the code for your robot. So you want to
+    overlay your robot code on top of `AMecBase.java`, not integrate it into `AMecBase.java`.
+  * *What stuff really goes in `AMyMecBase`?* - when you are writing your OpModes, you will write code to do some game
+    operation in an OpMode.  Later you will be writing another op mode and your will realize you need the same game code in
+    that OpMode. You will be tempted to copy the code from the first OpMode - don't - move that code into a function in
+    `AMyMecBase` that both OpModes call. Don't duplicate code.
+* `OBJMotorTest`, `OBJDriveExample`, `OBJAutoCalibrate`, and `OBJAutoExample` extend `AMecBase` and basically connect gamepad
+  actions to functions in `AMecBase`. When you build your teleop and autonomous OpModes you will be copying these basic
+  programs which only control the mecanum base, and adding calls to the functions you added to `AMyMecBase` to perform the
+  game-specific actions.
 
 ## HRVS Command-Based Programming
 
