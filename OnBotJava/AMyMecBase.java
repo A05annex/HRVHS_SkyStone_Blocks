@@ -23,7 +23,7 @@ public abstract class AMyMecBase extends AMecBase {
         // adjust 'constants' initialized in AMecBase that are specific to my robot
         //ticsPerInchForward = 300.0;
         //ticsPerInchSideways = 315.0;
-/
+
         // initialize 'constants' that are specific to the non-drive parts of my
         // robot here.
 
