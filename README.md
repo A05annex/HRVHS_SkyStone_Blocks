@@ -6,7 +6,7 @@ This project is the Blocks and OnBotJava for a common platform for the HRVHS FTC
   functionality.
 * Demonstrate (in Java) using a common Robot class that all the driver-controlled and autonomous OpModes can be built on so common
   functionality is on one place shared by all OpModes
-* Demonstrate and give FTC programmers exposure (in Java) to the
+* (Future) Demonstrate and give FTC programmers exposure (in Java) to the
   [command-based programming](https://wpilib.screenstepslive.com/s/currentCS/m/java/c/88893) paradigm used in the
   FRC WPILib platform.
 
