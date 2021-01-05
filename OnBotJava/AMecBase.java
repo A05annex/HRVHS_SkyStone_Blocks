@@ -133,7 +133,7 @@ public abstract class AMecBase extends LinearOpMode {
     /**
      * Reset the encoders for the four drive motors.
      */
-    private void resetDriveEncoders() {
+    protected void resetDriveEncoders() {
         FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

@@ -250,7 +250,8 @@ put common functionality in a single class/file. We see this in the class struct
   * *What stuff really goes in `AMyMecBase`?* - when you are writing your OpModes, you will write code to do some game
     operation in an OpMode.  Later you will be writing another op mode and your will realize you need the same game code in
     that OpMode. You will be tempted to copy the code from the first OpMode - don't - move that code into a function in
-    `AMyMecBase` that both OpModes call. Don't duplicate code.
+    `AMyMecBase` that both OpModes call. That way, if you need to fix the game operation, you do it on one place, and
+    it applies to all the OpModes. Don't duplicate code.
 * `OBJMotorTest`, `OBJDriveExample`, `OBJAutoCalibrate`, and `OBJAutoExample` extend `AMecBase` and basically connect gamepad
   actions to functions in `AMecBase`. When you build your teleop and autonomous OpModes you will be copying these basic
   programs which only control the mecanum base, and adding calls to the functions you added to `AMyMecBase` to perform the
